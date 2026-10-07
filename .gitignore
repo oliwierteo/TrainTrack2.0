@@ -1,0 +1,22 @@
+# Pliki, które NIE wgrywamy do gita
+# ---- wyniki budowania (są ogromne i za każdym razem inne) ----
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+*.pyo
+
+# ---- cache aplikacji (zawiera dane trenerów) ----
+cache/
+*.gz
+*.json.gz
+.env
+
+# ---- systemowe ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.venv/
+venv/
+env/
