@@ -27,10 +27,37 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # build.py kończy się KODEM BŁĘDU, gdy kompilacja padnie
+      # (wcześniej chwytał wyjątek i wychodził z 0 - GitHub wtedy
+      # uważał krok za udany, a następny wywalał się bez przyczyny).
       - name: Budowanie aplikacji
+        id: build
+        continue-on-error: true
+        run: python build.py
+
+      # Plan awaryjny: universal2 (plik na stare i nowe Maci) potrafi
+      # nie przejść na maszynie GitHuba. Powtarzamy bez niego - wtedy
+      # powstanie .app tylko dla architektury tej maszyny.
+      - name: Powtórka bez universal2
+        if: steps.build.outcome == 'failure'
         run: |
-          python build.py
-          ls -la dist/
+          echo "Pierwsza próba nie powiodła się - próbuję bez universal2."
+          TT_NO_UNIVERSAL=1 python build.py
+
+      - name: Sprawdzenie, czy .app powstało
+        run: |
+          echo "--- zawartość dist/ ---"
+          ls -la dist/ || echo "dist/ nie istnieje"
+          if [ ! -d dist/TrainTrack.app ]; then
+            echo ""
+            echo "======================================================"
+            echo "NIE POWSTAŁO dist/TrainTrack.app"
+            echo "Powyżej jest PRAWDZIWY błąd kompilacji - przewiń do"
+            echo "pierwszej linijki na czerwono i podeślij ją."
+            echo "======================================================"
+            exit 1
+          fi
+          echo "OK - TrainTrack.app istnieje"
 
       # ditto to macowy odpowiednik "spakuj folder", zachowuje uprawnienia
       # i atrybuty podpisu - zwykły zip potrafi zepsuć aplikację .app
